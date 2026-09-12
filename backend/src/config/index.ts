@@ -8,8 +8,8 @@ const envSchema = z.object({
             error: 'Only numbers are allowed !',
         })
         .transform((val) => parseInt(val, 10))
-        .refine((val) => val > 0 && val <= 65355, {
-            error: 'Port number must be in range (0, 65355]',
+        .refine((val) => val > 0 && val <= 65535, {  // ✅ fixed typo
+            error: 'Port number must be in range (0, 65535]',
         }),
 
     MONGODB_URI: z
@@ -52,6 +52,27 @@ const envSchema = z.object({
         .regex(/^\d+[smhd]$/, {
             error: 'ACCESS_TOKEN_EXPIRY must be in format like 15m, 2h, 1d, 30s',
         }),
+
+    BREVO_API_KEY: z
+        .string()
+        .trim()
+        .regex(/^xkeysib-[a-zA-Z0-9]+-[a-zA-Z0-9]+$/, {
+            error: 'Invalid Brevo API key format — expected xkeysib-<key>-<suffix>',
+        }),
+
+    SENDER_EMAIL: z
+        .string()
+        .trim()
+        .email({
+            error: 'Invalid sender email address',
+        }),
+
+    SENDER_NAME: z
+        .string()
+        .trim()
+        .min(1, {
+            error: 'SENDER_NAME cannot be empty !',
+        }),
 })
 
 const parsedEnv = envSchema.safeParse(process.env)
@@ -67,6 +88,9 @@ const config = {
     saltRounds: parsedEnv.data.SALT_ROUNDS,
     accessTokenSecret: parsedEnv.data.ACCESS_TOKEN_SECRET,
     accessTokenExpiry: parsedEnv.data.ACCESS_TOKEN_EXPIRY,
+    brevoApiKey: parsedEnv.data.BREVO_API_KEY,
+    senderEmail: parsedEnv.data.SENDER_EMAIL,
+    senderName: parsedEnv.data.SENDER_NAME,
 } as const
 
 export default config
